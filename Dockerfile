@@ -1,17 +1,23 @@
-FROM alpine/java:22-jdk
+
+#------------------- Stage1 ----------------------
+
+FROM eclipse-temurin:25-jdk-alpine AS builder 
 
 WORKDIR /app
 
-COPY . /app
+COPY /src ./src
 
-WORKDIR /app/src
+RUN javac -d . src/ToDoList.java
 
-# --- DEBUGGING STEP ---
-# This will list all files in the terminal so we can see the exact spelling/case
-RUN ls -la
+#------------------ Stage 2 ----------------------
+FROM gcr.io/distroless/java21-debian12
+#FROM eclipse-temurin:17-jre-apline
 
-# Compile the code
-RUN javac -d . ToDoList.java
+WORKDIR /app
 
-# Run the app
+COPY --from=builder /app .
+
+EXPOSE 3000
+
 CMD ["java", "todolist.ToDoList"]
+
